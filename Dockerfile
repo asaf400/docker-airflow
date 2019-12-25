@@ -89,9 +89,10 @@ COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
 # https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/blob/master/README.md
 # Adds airflow-scheduler-failover-controller by downloading tagged version, init populated default configs in /usr/local/airflow/airflow.cfg, and then sed fixes them
-RUN pip install git+git://github.com/asaf400/airflow-scheduler-failover-controller@dev-v1.0.5-envfix && scheduler_failover_controller init && sed -i -e 's/scheduler_nodes_in_cluster = localhost/scheduler_nodes_in_cluster = airflow-controller1.isappcloud.com,airflow-controller2.isappcloud.com/' -e 's/enable_proxy_fix = False/enable_proxy_fix = True/g' /usr/local/airflow/airflow.cfg
+RUN pip install git+git://github.com/asaf400/airflow-scheduler-failover-controller@dev-v1.0.5-envfix2 && scheduler_failover_controller init && sed -i -e 's/enable_proxy_fix = False/enable_proxy_fix = True/g' /usr/local/airflow/airflow.cfg
 
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
+ENV TERM xterm
 
 EXPOSE 8080 5555 8793
 
