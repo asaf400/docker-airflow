@@ -1,4 +1,4 @@
-# VERSION 1.10.4
+# VERSION 1.10.6
 # AUTHOR: Matthieu "Puckel_" Roisil
 # FORK: Asaf Levy
 # FORK_SOURCE: https://github.com/asaf400/docker-airflow
@@ -14,7 +14,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.4
+ARG AIRFLOW_VERSION=1.10.6
 ARG AIRFLOW_USER_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
