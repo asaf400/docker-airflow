@@ -38,11 +38,13 @@ RUN set -ex \
     git \
     ' \
     && apt-get update -yqq \
+    && apt-get install curl gnupg2 -yqq --no-install-recommends\
+    && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
-    curl \
     cmake \
     rsync \
+    nodejs \
     netcat \
     locales \
     apt-utils \
@@ -61,7 +63,8 @@ RUN set -ex \
     && pip install pytz \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
-    && pip install pyasn1
+    && pip install pyasn1 \
+    && pip install flask-oauthlib
 
 # RUN curl -Ls https://github.com/alanxz/rabbitmq-c/archive/v0.8.0.tar.gz | tar -zxv \
 #     && cd rabbitmq-c-0.8.0 && autoreconf -i && ./configure && make && make install && cd .. && rm -rf rabbitmq-c-0.8.0
@@ -69,11 +72,13 @@ RUN set -ex \
 RUN curl -Ls https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz | tar -zxv \
     && cd rabbitmq-c-0.9.0 && mkdir build && cd build && cmake .. && cmake --build . --config Release --target install && cd ../.. && rm -rf rabbitmq-c-0.9.0
 
+ARG break_layer=unknown
 
-
-RUN pip install apache-airflow[crypto,celery,postgres,jdbc,mysql,ssh,slack,s3,redis,rabbitmq,password,ldap,hive,hdfs,async${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
+RUN pip install git+git://github.com/asaf400/airflow@allow_fab_environment_variables#egg=apache-airflow[statsd,google_auth,crypto,celery,postgres,jdbc,mysql,ssh,slack,s3,redis,rabbitmq,password,ldap,hive,hdfs,emr,async${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}] \
     && pip install 'redis==3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
+    && cd /usr/local/lib/python3.7/site-packages \
+    && airflow/www_rbac/compile_assets.sh \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
@@ -99,4 +104,6 @@ EXPOSE 8080 5555 8793
 USER airflow
 WORKDIR ${AIRFLOW_USER_HOME}
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"] # set default arg for entrypoint
+
+# set default arg for entrypoint
+CMD ["webserver"]

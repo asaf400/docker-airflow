@@ -1,4 +1,9 @@
 version: '2.1'
+
+x-shared-environment: &environment
+    LOAD_EX: n
+    EXECUTOR: Local
+
 services:
     postgres:
         image: postgres:9.6
@@ -8,13 +13,13 @@ services:
             - POSTGRES_DB=airflow
 
     webserver:
-        image: puckel/docker-airflow:1.10.6
+        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v10
         restart: always
         depends_on:
             - postgres
         environment:
-            - LOAD_EX=n
-            - EXECUTOR=Local
+            <<: *environment
+            AIRFLOW__LOGGING__BASE_LOG_FOLDER: /usr/local/airflow/logs/abc
         volumes:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins

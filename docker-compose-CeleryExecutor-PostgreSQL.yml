@@ -1,4 +1,17 @@
 version: '2.1'
+
+x-shared-environment: &environment
+    LOAD_EX: y
+    FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+    # DATABASE: POSTGRES # Defaults to POSTGRES
+    # POSTGRES_USER: airflow
+    # POSTGRES_PASSWORD: airflow
+    # POSTGRES_DB: airflow
+
+x-celery-environment: &celery-environment
+    EXECUTOR: Celery
+    # REDIS_PASSWORD: redispass
+
 services:
     redis:
         image: 'redis:5.0.5'
@@ -16,19 +29,14 @@ services:
         #     - ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
-        image: puckel/docker-airflow:1.10.6
+        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v0.9
         restart: always
         depends_on:
             - postgres
             - redis
         environment:
-            - LOAD_EX=n
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
+            <<: *celery-environment
+            <<: *environment
         volumes:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins
@@ -43,19 +51,18 @@ services:
             retries: 3
 
     flower:
-        image: puckel/docker-airflow:1.10.6
+        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v9
         restart: always
         depends_on:
             - redis
         environment:
-            - EXECUTOR=Celery
-            # - REDIS_PASSWORD=redispass
+            <<: *celery-environment
         ports:
             - "5555:5555"
         command: flower
 
     scheduler:
-        image: puckel/docker-airflow:1.10.6
+        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v9
         restart: always
         depends_on:
             - webserver
@@ -64,17 +71,12 @@ services:
             # Uncomment to include custom plugins
             # - ./plugins:/usr/local/airflow/plugins
         environment:
-            - LOAD_EX=n
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
+            <<: *celery-environment
+            <<: *environment
         command: scheduler
 
     worker:
-        image: puckel/docker-airflow:1.10.6
+        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v9
         restart: always
         depends_on:
             - scheduler
@@ -83,10 +85,6 @@ services:
             # Uncomment to include custom plugins
             # - ./plugins:/usr/local/airflow/plugins
         environment:
-            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-            - EXECUTOR=Celery
-            # - POSTGRES_USER=airflow
-            # - POSTGRES_PASSWORD=airflow
-            # - POSTGRES_DB=airflow
-            # - REDIS_PASSWORD=redispass
+            <<: *celery-environment
+            <<: *environment
         command: worker
