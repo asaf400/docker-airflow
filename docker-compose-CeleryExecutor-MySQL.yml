@@ -31,7 +31,7 @@ services:
         #     - ./mysql_data:/var/lib/mysql/data/
 
     webserver:
-        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
+        image: asaf400/docker-airflow
         restart: always
         depends_on:
             - mysql
@@ -54,7 +54,7 @@ services:
             retries: 3
 
     flower:
-        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
+        image: asaf400/docker-airflow
         restart: always
         depends_on:
             - redis
@@ -65,7 +65,7 @@ services:
         command: flower
 
     scheduler:
-        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
+        image: asaf400/docker-airflow
         restart: always
         depends_on:
             - webserver
@@ -79,7 +79,7 @@ services:
         command: scheduler
 
     worker:
-        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
+        image: asaf400/docker-airflow
         restart: always
         depends_on:
             - scheduler

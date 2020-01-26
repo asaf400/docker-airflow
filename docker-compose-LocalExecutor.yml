@@ -13,7 +13,7 @@ services:
             - POSTGRES_DB=airflow
 
     webserver:
-        image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
+        image: asaf400/docker-airflow
         restart: always
         depends_on:
             - postgres
