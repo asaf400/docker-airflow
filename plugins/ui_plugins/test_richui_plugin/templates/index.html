@@ -1,0 +1,25 @@
+{% extends "airflow/master.html" %}
+
+{% block title %}Rich UI Plugin Title{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    {{ lib.form_css() }}
+    <style>
+        span.highlighted{
+            background: #F1C40F;
+            display: inline-block;
+            font-weight: bold;
+            padding: 0 6px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+Hello World from Rich UI
+{{ super() }}
+{% endblock %}
+
+{% block tail %}
+{{ super() }}
+{% endblock %}

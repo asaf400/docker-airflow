@@ -5,6 +5,7 @@ https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
+from airflow.operators import MyFirstOperator
 
 
 default_args = {
@@ -22,19 +23,16 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('tutorial', default_args=default_args, schedule_interval=timedelta(days=1))
+dag = DAG('my_operator_plugin_test', default_args=default_args, schedule_interval=timedelta(days=1))
 
 # t1, t2 and t3 are examples of tasks created by instantiating operators
 t1 = BashOperator(
     task_id='print_date',
-    bash_command='date;echo Asaf is awesome',
+    bash_command='date;echo Oded is awesome',
     dag=dag)
 
-t2 = BashOperator(
-    task_id='sleep',
-    bash_command='sleep 5',
-    retries=3,
-    dag=dag)
+t2 = MyFirstOperator(my_operator_param='This is a test.',
+                                task_id='my_first_operator_task', dag=dag)
 
 templated_command = """
     {% for i in range(5) %}

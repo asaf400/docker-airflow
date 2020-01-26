@@ -1,12 +1,12 @@
 version: '2.1'
 
 x-shared-environment: &environment
-    LOAD_EX: n
+    DATABASE: MYSQL
     FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-    # DATABASE: POSTGRES # Defaults to POSTGRES
-    # POSTGRES_USER: airflow
-    # POSTGRES_PASSWORD: airflow
-    # POSTGRES_DB: airflow
+    LOAD_EX: y
+    # MYSQL_USER: airflow
+    # MYSQL_PASSWORD: airflow
+    # MYSQL_DB: airflow
 
 x-celery-environment: &celery-environment
     EXECUTOR: Celery
@@ -17,30 +17,33 @@ services:
         image: 'redis:5.0.5'
         # command: redis-server --requirepass redispass
 
-    postgres:
-        image: postgres:9.6
+    mysql:
+        image: mysql:5.7
+        command: --explicit-defaults-for-timestamp=1
         environment:
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
+            - MYSQL_USER=airflow
+            - MYSQL_PASSWORD=airflow
+            - MYSQL_RANDOM_ROOT_PASSWORD=true
+            - MYSQL_DATABASE=airflow
         # Uncomment these lines to persist data on the local filesystem.
-        #     - PGDATA=/var/lib/postgresql/data/pgdata
+        #     - MYSQL_DATA=/var/lib/mysql/data/
         # volumes:
-        #     - ./pgdata:/var/lib/postgresql/data/pgdata
+        #     - ./mysql_data:/var/lib/mysql/data/
 
     webserver:
         image: 805787217936.dkr.ecr.us-west-2.amazonaws.com/aura-airflow:v11
         restart: always
         depends_on:
-            - postgres
+            - mysql
             - redis
         environment:
-            <<: *celery-environment
             <<: *environment
+            <<: *celery-environment
         volumes:
             - ./dags:/usr/local/airflow/dags
+            - ~/.pip:/usr/local/airflow/.pip
             # Uncomment to include custom plugins
-            - ./plugins:/usr/local/airflow/plugins
+            # - ./plugins:/usr/local/airflow/plugins
         ports:
             - "8080:8080"
         command: webserver
@@ -56,9 +59,7 @@ services:
         depends_on:
             - redis
         environment:
-            <<: *celery-environment
             <<: *environment
-
         ports:
             - "5555:5555"
         command: flower
@@ -71,10 +72,10 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins
-            - ./plugins:/usr/local/airflow/plugins
+            # - ./plugins:/usr/local/airflow/plugins
         environment:
-            <<: *celery-environment
             <<: *environment
+            <<: *celery-environment
         command: scheduler
 
     worker:
@@ -85,8 +86,8 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             # Uncomment to include custom plugins
-            - ./plugins:/usr/local/airflow/plugins
+            # - ./plugins:/usr/local/airflow/plugins
         environment:
-            <<: *celery-environment
             <<: *environment
-        command: worker
+            <<: *celery-environment
+        command: worker -q default

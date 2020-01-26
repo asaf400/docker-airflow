@@ -27,21 +27,23 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
+ARG SPLIT1=default
+
 RUN set -ex \
     && buildDeps=' \
-    freetds-dev \
-    libkrb5-dev \
-    libsasl2-dev \
-    libssl-dev \
-    libffi-dev \
-    libpq-dev \
-    git \
+        freetds-dev \
+        libkrb5-dev \
+        libsasl2-dev \
+        libssl-dev \
+        libffi-dev \
+        libpq-dev \
     ' \
     && apt-get update -yqq \
     && apt-get install curl gnupg2 -yqq --no-install-recommends\
     && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
+    git \
     cmake \
     rsync \
     nodejs \
@@ -55,26 +57,23 @@ RUN set -ex \
     build-essential \
     librabbitmq-dev \
     default-libmysqlclient-dev \
+    python-pip \
+    python-dev \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
-    && locale-gen \
+    && cat /etc/locale.gen \
+    && locale-gen en_US.UTF-8 \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_USER_HOME} airflow \
+    && dpkg-reconfigure locales \
     && pip install -U pip setuptools wheel \
     && pip install pytz \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
-    && pip install flask-oauthlib
-
-# RUN curl -Ls https://github.com/alanxz/rabbitmq-c/archive/v0.8.0.tar.gz | tar -zxv \
-#     && cd rabbitmq-c-0.8.0 && autoreconf -i && ./configure && make && make install && cd .. && rm -rf rabbitmq-c-0.8.0
-
-RUN curl -Ls https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz | tar -zxv \
-    && cd rabbitmq-c-0.9.0 && mkdir build && cd build && cmake .. && cmake --build . --config Release --target install && cd ../.. && rm -rf rabbitmq-c-0.9.0
-
-ARG break_layer=unknown
-
-RUN pip install git+git://github.com/asaf400/airflow@allow_fab_environment_variables#egg=apache-airflow[statsd,google_auth,crypto,celery,postgres,jdbc,mysql,ssh,slack,s3,redis,rabbitmq,password,ldap,hive,hdfs,emr,async${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}] \
+    && pip install flask-oauthlib \
+    && curl -Ls https://github.com/alanxz/rabbitmq-c/archive/v0.9.0.tar.gz | tar -zxv \
+    && cd rabbitmq-c-0.9.0 && mkdir build && cd build && cmake .. && cmake --build . --config Release --target install && cd ../.. && rm -rf rabbitmq-c-0.9.0 \
+    && pip install git+git://github.com/asaf400/airflow@allow_fab_environment_variables#egg=apache-airflow[statsd,google_auth,crypto,celery,postgres,jdbc,mysql,ssh,slack,s3,redis,rabbitmq,password,ldap,hive,hdfs,emr,async${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}] \
     && pip install 'redis==3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && cd /usr/local/lib/python3.7/site-packages \
@@ -90,6 +89,10 @@ RUN pip install git+git://github.com/asaf400/airflow@allow_fab_environment_varia
     /usr/share/doc \
     /usr/share/doc-base
 
+ARG SPLIT2=unknown
+
+#RUN pip2 install wheel setuptools && pip2 install git+git://github.com/asaf400/airflow@allow_fab_environment_variables#egg=apache-airflow[crypto,celery,mysql,redis]
+RUN pip2 install virtualenv
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
 # https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/blob/master/README.md

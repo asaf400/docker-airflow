@@ -44,6 +44,7 @@ fi
 # Install custom python package if requirements.txt is present
 if [ -e "/requirements.txt" ]; then
     $(command -v pip) install --user -r /requirements.txt
+    export PATH=$HOME/.local/bin/:$PATH # https://github.com/puckel/docker-airflow/pull/480
 fi
 
 if [ -n "$REDIS_PASSWORD" ]; then
@@ -106,6 +107,7 @@ case "$1" in
     ;;
   *)
     # The command is something like bash, not an airflow subcommand. Just run it in the right environment.
+    echo "Unexpected (non-airflow) command $1, executing $@"
     exec "$@"
     ;;
 esac
